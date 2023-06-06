@@ -204,7 +204,7 @@ class Stream extends Duplex {
     port: number,
     protocolID: string,
     maxAge: number,
-    origin: string
+    origin: string,
   ) {
     let stream = 0;
     if (origin) {
@@ -252,7 +252,7 @@ class Stream extends Duplex {
 
     let moreNeeded = (this.upstream as any)._writePrev.call(
       this.upstream,
-      frame
+      frame,
     );
 
     // * Transition to a new state if that's the effect of receiving the frame
@@ -278,9 +278,7 @@ class Stream extends Duplex {
       // TODO
     } else if (frame.type === "ORIGIN") {
       // TODO
-    }
-
-    // * If it's an invalid stream level frame, emit error
+    } // * If it's an invalid stream level frame, emit error
     else if (
       //frame.type !== "DATA" &&
       frame.type !== "WINDOW_UPDATE" &&
@@ -376,7 +374,7 @@ class Stream extends Duplex {
     ) {
       this._log.debug(
         { frame: lastFrame },
-        "Marking last frame with END_STREAM flag."
+        "Marking last frame with END_STREAM flag.",
       );
       lastFrame.flags.END_STREAM = true;
       this._transition(true, endFrame);
@@ -488,7 +486,7 @@ class Stream extends Duplex {
           this._setState("OPEN");
           if (frame.flags.END_STREAM) {
             this._setState(
-              sending ? "HALF_CLOSED_LOCAL" : "HALF_CLOSED_REMOTE"
+              sending ? "HALF_CLOSED_LOCAL" : "HALF_CLOSED_REMOTE",
             );
           }
           this._initiated = sending;
@@ -664,18 +662,17 @@ class Stream extends Duplex {
          of the reserved could have been changed by then. */
       assert(
         (frame.promised_stream as any as Stream).state === "IDLE",
-        (frame.promised_stream as any as Stream).state
+        (frame.promised_stream as any as Stream).state,
       );
       frame.promised_stream._setState(
-        sending ? "RESERVED_LOCAL" : "RESERVED_REMOTE"
+        sending ? "RESERVED_LOCAL" : "RESERVED_REMOTE",
       );
       (frame.promised_stream as any as Stream)._initiated = sending;
     }
 
     // Signaling how sending/receiving this frame changes the active stream count (-1, 0 or +1)
     if (this._initiated) {
-      const change =
-        (activeState(this.state) as unknown as number) -
+      const change = (activeState(this.state) as unknown as number) -
         (activeState(previousState) as unknown as number);
       if (sending) {
         frame.count_change = change;
@@ -702,12 +699,10 @@ class Stream extends Duplex {
         return this.emit(
           "error",
           new Error(
-            `Sending illegal frame (${frame.type}) in ${this.state} state.`
-          )
+            `Sending illegal frame (${frame.type}) in ${this.state} state.`,
+          ),
         );
-      }
-
-      // * In case of a serious problem, emitting and error and letting someone else handle it
+      } // * In case of a serious problem, emitting and error and letting someone else handle it
       //   (e.g. closing the connection)
       // * When receiving something invalid, sending an RST_STREAM using the `reset` method.
       //   This will automatically cause a transition to the CLOSED state.

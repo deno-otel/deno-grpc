@@ -1,10 +1,10 @@
 import { startsWith } from "https://deno.land/std@0.93.0/bytes/mod.ts";
 
-import { Root, parse, Type } from "./proto.ts";
+import { parse, Root, Type } from "./proto.ts";
 
 import { Connection } from "./http2/conn.ts";
-import { Status, error, GrpcError } from "./error.ts";
-import { Serializer, Deserializer, Frame } from "./http2/frames.ts";
+import { error, GrpcError, Status } from "./error.ts";
+import { Deserializer, Frame, Serializer } from "./http2/frames.ts";
 import { Compressor, Decompressor } from "./http2/hpack.ts";
 
 import { Stream } from "./http2/stream.ts";
@@ -201,7 +201,7 @@ export class GrpcServer {
     conn: Http2Conn,
     stream: Stream,
     headers: Record<string, string>,
-    dataFrame: Frame
+    dataFrame: Frame,
   ) {
     let [serviceName, methodName] = headers[":path"]
       .split("/")
@@ -213,7 +213,7 @@ export class GrpcServer {
     if (!impl) {
       throw error(
         Status.UNIMPLEMENTED,
-        `Method "${headers[":path"]}" not implemented`
+        `Method "${headers[":path"]}" not implemented`,
       );
     }
     const { responseType, requestType, handler, streamed } = impl;
@@ -256,7 +256,7 @@ export class GrpcServer {
   sendTrailers(
     conn: Http2Conn,
     stream: Stream,
-    trailers: Record<string, string>
+    trailers: Record<string, string>,
   ) {
     try {
       stream.sentEndStream = true;

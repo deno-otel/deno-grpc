@@ -91,7 +91,7 @@ class Flow extends Duplex {
   // `_receive` is called when there's an incoming frame.
   _receive(frame: Frame, callback: Function) {
     throw new Error(
-      "The _receive(frame, callback) method has to be overridden by the child class!"
+      "The _receive(frame, callback) method has to be overridden by the child class!",
     );
   }
 
@@ -100,8 +100,8 @@ class Flow extends Duplex {
   // incoming frame is a WINDOW_UPDATE.
   // [1]: https://nodejs.org/api/stream.html#stream_writable_write_chunk_encoding_callback_1
   _write = (frame: Frame, encoding: string, callback: Function) => {
-    const sentToUs =
-      this._flowControlId === undefined || frame.stream === this._flowControlId;
+    const sentToUs = this._flowControlId === undefined ||
+      frame.stream === this._flowControlId;
 
     if (sentToUs && (frame.flags.END_STREAM || frame.type === "RST_STREAM")) {
       this._ended = true;
@@ -161,7 +161,7 @@ class Flow extends Duplex {
   // `_send` is called when more frames should be pushed to the output buffer.
   _send() {
     throw new Error(
-      "The _send() method has to be overridden by the child class!"
+      "The _send() method has to be overridden by the child class!",
     );
   }
 
@@ -172,9 +172,7 @@ class Flow extends Duplex {
     // * if the flow control queue is empty, then let the user push more frames
     if (this._queue.length === 0) {
       this._send();
-    }
-
-    // * if there are items in the flow control queue, then let's put them into the output queue (to
+    } // * if there are items in the flow control queue, then let's put them into the output queue (to
     //   the extent it is possible with respect to the window size and output queue feedback)
     else if (this._window > 0) {
       this._readableState.sync = true; // to avoid reentrant calls
@@ -189,11 +187,9 @@ class Flow extends Duplex {
       assert(
         !moreNeeded || // * output queue is full
           this._queue.length === 0 || // * flow control queue is empty
-          (!this._window && this._queue[0].type === "DATA")
+          (!this._window && this._queue[0].type === "DATA"),
       ); // * waiting for window update
-    }
-
-    // * otherwise, come back when the flow control window is positive
+    } // * otherwise, come back when the flow control window is positive
     else {
       this.once("window_update", this._read);
     }
@@ -227,7 +223,7 @@ class Flow extends Duplex {
       } else if (frame.data.length > limit) {
         this._log.trace(
           { frame, size: frame.data.length, forwardable: limit },
-          "Splitting out forwardable part of a DATA frame."
+          "Splitting out forwardable part of a DATA frame.",
         );
         this.unshift({
           type: "DATA",
@@ -250,7 +246,7 @@ class Flow extends Duplex {
     if (frame && frame.type === "DATA" && this._window !== Infinity) {
       this._log.trace(
         { window: this._window, by: frame.data.length },
-        "Decreasing flow control window size."
+        "Decreasing flow control window size.",
       );
       this._window -= frame.data.length;
       assert(this._window >= 0);
@@ -274,7 +270,7 @@ class Flow extends Duplex {
     } else {
       this._log.trace(
         { frame, size: frame.data.length, forwardable: this._window },
-        "Splitting out forwardable part of a DATA frame."
+        "Splitting out forwardable part of a DATA frame.",
       );
       frame.data = data.slice(maxFrameLength);
       this._parentPush({
@@ -320,13 +316,13 @@ class Flow extends Duplex {
   _increaseWindow(size: number) {
     if (this._window === Infinity && size !== Infinity) {
       this._log.error(
-        "Trying to increase flow control window after flow control was turned off."
+        "Trying to increase flow control window after flow control was turned off.",
       );
       this.emit("error", "FLOW_CONTROL_ERROR");
     } else {
       this._log.trace(
         { window: this._window, by: size },
-        "Increasing flow control window size."
+        "Increasing flow control window size.",
       );
       this._window += size;
       if (this._window !== Infinity && this._window > WINDOW_SIZE_LIMIT) {

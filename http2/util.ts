@@ -9,9 +9,9 @@ function consoleLog(level: string, ...args: any[]) {
   let [more, msg] = args || [];
 
   if (more && more.frame) {
-    more = `frame ${more.frame.type} of s:${
-      more.frame.stream
-    } with flags ${JSON.stringify(more.frame.flags)}`;
+    more = `frame ${more.frame.type} of s:${more.frame.stream} with flags ${
+      JSON.stringify(more.frame.flags)
+    }`;
   }
 
   if (more && more.data) {

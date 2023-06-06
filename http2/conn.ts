@@ -42,7 +42,6 @@ export { Connection };
 //
 // * **close([error])**: close the stream with an error code
 
-
 // Constructor
 // -----------
 
@@ -112,7 +111,7 @@ class Connection extends Flow {
     this._streamLimit = Infinity;
     this.on(
       "RECEIVING_SETTINGS_MAX_CONCURRENT_STREAMS",
-      this._updateStreamLimit
+      this._updateStreamLimit,
     );
   }
 
@@ -137,8 +136,8 @@ class Connection extends Flow {
 
   // Methods to manage the stream slot pool:
   _updateStreamLimit(newStreamLimit: number) {
-    const wakeup =
-      this._streamSlotsFree === 0 && newStreamLimit > this._streamLimit;
+    const wakeup = this._streamSlotsFree === 0 &&
+      newStreamLimit > this._streamLimit;
     this._streamSlotsFree += newStreamLimit - this._streamLimit;
     this._streamLimit = newStreamLimit;
     if (wakeup) {
@@ -150,7 +149,7 @@ class Connection extends Flow {
     if (change) {
       this._log.trace(
         { free: this._streamSlotsFree, change },
-        "Changing active stream count."
+        "Changing active stream count.",
       );
       const wakeup = this._streamSlotsFree === 0 && change < 0;
       this._streamSlotsFree -= change;
@@ -173,21 +172,17 @@ class Connection extends Flow {
     if (id === undefined) {
       id = this._nextStreamId!;
       this._nextStreamId! += 2;
-    }
-
-    // * incoming stream with a legitim ID (larger than any previous and different parity than ours)
+    } // * incoming stream with a legitim ID (larger than any previous and different parity than ours)
     else if (
       id > this._lastIncomingStream! &&
       (id - this._nextStreamId!) % 2 !== 0
     ) {
       this._lastIncomingStream = id;
-    }
-
-    // * incoming stream with invalid ID
+    } // * incoming stream with invalid ID
     else {
       this._log.error(
         { stream_id: id, lastIncomingStream: this._lastIncomingStream },
-        "Invalid incoming stream ID."
+        "Invalid incoming stream ID.",
       );
       this.emit("error", "PROTOCOL_ERROR");
       return undefined;
@@ -293,7 +288,8 @@ class Connection extends Flow {
     let moreNeeded;
 
     // * Looping through priority `bucket`s in priority order.
-    priority_loop: for (const priority in this._streamPriorities) {
+    priority_loop:
+    for (const priority in this._streamPriorities) {
       let bucket = this._streamPriorities[priority];
       let nextBucket = [];
 
@@ -312,7 +308,7 @@ class Connection extends Flow {
         for (let index = 0; index < bucket.length; index++) {
           const stream = bucket[index];
           const frame = stream.upstream!.read(
-            this._window > 0 ? this._window : -1
+            this._window > 0 ? this._window : -1,
           ) as any;
 
           if (!frame) {
@@ -333,7 +329,7 @@ class Connection extends Flow {
             frame.promised_stream = this._allocateId(frame.promised_stream);
           }
 
-          this._log.trace({  frame }, "Forwarding outgoing frame");
+          this._log.trace({ frame }, "Forwarding outgoing frame");
           moreNeeded = this.push(frame);
           this._changeStreamCount(frame.count_change);
 
@@ -386,7 +382,7 @@ class Connection extends Flow {
         frame.type == "CONTINUATION") &&
       frame.stream == 0
     ) {
-      console.log('closing because', frame);
+      console.log("closing because", frame);
       // Got stream-level frame on connection - EEP!
       this.close("PROTOCOL_ERROR");
       return;
@@ -404,7 +400,7 @@ class Connection extends Flow {
     // * in case of PUSH_PROMISE, replaces the promised stream id with a new incoming stream
     if (frame.type === "PUSH_PROMISE") {
       (frame as any).promised_stream = this._createIncomingStream(
-        frame.promised_stream
+        frame.promised_stream,
       );
     }
 
@@ -424,7 +420,7 @@ class Connection extends Flow {
     // * Sending the initial settings.
     this._log.debug(
       { settings },
-      "Sending the first SETTINGS frame as part of the connection header."
+      "Sending the first SETTINGS frame as part of the connection header.",
     );
     this.set(settings || defaultSettings);
 
@@ -437,12 +433,12 @@ class Connection extends Flow {
   _onFirstFrameReceived(frame: Frame) {
     if (frame.stream === 0 && frame.type === "SETTINGS") {
       this._log.debug(
-        "Receiving the first SETTINGS frame as part of the connection header."
+        "Receiving the first SETTINGS frame as part of the connection header.",
       );
     } else {
       this._log.error(
         { frame },
-        "Invalid connection header: first frame is not SETTINGS."
+        "Invalid connection header: first frame is not SETTINGS.",
       );
       this.emit("error", "PROTOCOL_ERROR");
     }
@@ -456,9 +452,7 @@ class Connection extends Flow {
       if (callback) {
         callback();
       }
-    }
-
-    // * If it's a setting change request, then send an ACK and change the appropriate settings
+    } // * If it's a setting change request, then send an ACK and change the appropriate settings
     else {
       if (!this._closed) {
         this.push({
@@ -628,7 +622,7 @@ class Connection extends Flow {
     });
     this.on(
       "RECEIVING_SETTINGS_INITIAL_WINDOW_SIZE",
-      this._setInitialStreamWindowSize
+      this._setInitialStreamWindowSize,
     );
     this._streamIds[0].upstream!.setInitialWindow = function noop() {};
   }
@@ -640,7 +634,7 @@ class Connection extends Flow {
   _setInitialStreamWindowSize(size: number) {
     if (this._initialStreamWindowSize === Infinity && size !== Infinity) {
       this._log.error(
-        "Trying to manipulate initial flow control window size after flow control was turned off."
+        "Trying to manipulate initial flow control window size after flow control was turned off.",
       );
       this.emit("error", "FLOW_CONTROL_ERROR");
     } else {

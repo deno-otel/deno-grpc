@@ -274,7 +274,7 @@ export class HeaderSetDecompressor extends Transform {
   *_execute(rep: HeaderItem) {
     this._log.trace(
       { key: rep.name, value: rep.value, index: rep.index },
-      "Executing header representation"
+      "Executing header representation",
     );
 
     let entry;
@@ -282,9 +282,7 @@ export class HeaderSetDecompressor extends Transform {
 
     if (rep.contextUpdate) {
       this._table.setSizeLimit(rep.newMaxSize!);
-    }
-
-    // * An _indexed representation_ entails the following actions:
+    } // * An _indexed representation_ entails the following actions:
     //   * The header field corresponding to the referenced entry is emitted
     else if (typeof rep.value === "number") {
       const index = rep.value;
@@ -293,9 +291,7 @@ export class HeaderSetDecompressor extends Transform {
       pair = entry.slice();
       this.push(pair);
       yield pair;
-    }
-
-    // * A _literal representation_ that is _not added_ to the header table entails the following
+    } // * A _literal representation_ that is _not added_ to the header table entails the following
     //   action:
     //   * The header is emitted.
     // * A _literal representation_ that is _added_ to the header table entails the following further
@@ -373,7 +369,7 @@ export class HeaderSetDecompressor extends Transform {
     const length = HeaderSetDecompressor.integer(buffer, 7);
     const encoded = buffer.slice(
       (buffer as any).cursor,
-      (buffer as any).cursor + length
+      (buffer as any).cursor + length,
     );
     (buffer as any).cursor += length;
     return (huffman ? huffmanTable.decode(encoded) : encoded).toString("utf8");
@@ -406,8 +402,9 @@ export class HeaderSetDecompressor extends Transform {
       header.contextUpdate = true;
       header.newMaxSize = HeaderSetDecompressor.integer(buffer, 5);
     } else if (representation === representations.indexed) {
-      header.value = header.name =
-        HeaderSetDecompressor.integer(buffer, representation.prefix) - 1;
+      header.value =
+        header.name =
+          HeaderSetDecompressor.integer(buffer, representation.prefix) - 1;
     } else {
       header.name =
         HeaderSetDecompressor.integer(buffer, representation.prefix) - 1;
@@ -488,8 +485,7 @@ export class HeaderSetCompressor extends Transform {
       }
     }
 
-    const mustNeverIndex =
-      (name === "cookie" && value.length < 20) ||
+    const mustNeverIndex = (name === "cookie" && value.length < 20) ||
       (name === "set-cookie" && value.length < 20) ||
       name === "authorization";
 
@@ -502,9 +498,7 @@ export class HeaderSetCompressor extends Transform {
       for (const c of chunks) {
         yield c;
       }
-    }
-
-    // * otherwise, it will be a literal representation (with a name index if there's a name match)
+    } // * otherwise, it will be a literal representation (with a name index if there's a name match)
     else {
       entry = entryFromPair(pair);
 
@@ -655,12 +649,12 @@ export class HeaderSetCompressor extends Transform {
       buffers.push(HeaderSetCompressor.integer(header.newMaxSize!, 5));
     } else if (representation === representations.indexed) {
       buffers.push(
-        HeaderSetCompressor.integer(+header.value + 1, representation.prefix)
+        HeaderSetCompressor.integer(+header.value + 1, representation.prefix),
       );
     } else {
       if (typeof header.name === "number") {
         buffers.push(
-          HeaderSetCompressor.integer(header.name + 1, representation.prefix)
+          HeaderSetCompressor.integer(header.name + 1, representation.prefix),
         );
       } else {
         buffers.push(HeaderSetCompressor.integer(0, representation.prefix));
@@ -1244,7 +1238,7 @@ export class Compressor extends Transform {
         }
         value = Array.prototype.concat.apply(
           [],
-          value.map((cookie: any) => String(cookie).split(";").map(trim))
+          value.map((cookie: any) => String(cookie).split(";").map(trim)),
         );
       }
 
@@ -1282,7 +1276,7 @@ export class Compressor extends Transform {
       console.log("Compressor.prototype._transform frame", frame);
       console.log(
         "Compressor.prototype._transform buffer",
-        buffer.toString("hex")
+        buffer.toString("hex"),
       );
 
       // This will result in CONTINUATIONs from a PUSH_PROMISE being 4 bytes shorter than they could
@@ -1311,9 +1305,7 @@ export class Compressor extends Transform {
 
         this.push(chunkFrame);
       }
-    }
-
-    // * otherwise, the frame is forwarded without taking any action
+    } // * otherwise, the frame is forwarded without taking any action
     else {
       this.push(frame);
     }
@@ -1374,9 +1366,11 @@ export class Decompressor extends Transform {
     let seenNonColonHeader = false;
 
     while ((block as any).cursor < block.length) {
-      for (const [name, value] of decompressor._execute(
-        HeaderSetDecompressor.header(block)
-      )) {
+      for (
+        const [name, value] of decompressor._execute(
+          HeaderSetDecompressor.header(block),
+        )
+      ) {
         const isColonHeader = name.toString().trim()[0] === ":";
         if (seenNonColonHeader && isColonHeader) {
           this.emit("error", "PROTOCOL_ERROR");
@@ -1413,17 +1407,13 @@ export class Decompressor extends Transform {
         return;
       }
       this._frames.push(frame);
-    }
-
-    // * and the collection process is not `_inProgress`, but the new frame's type is HEADERS or
+    } // * and the collection process is not `_inProgress`, but the new frame's type is HEADERS or
     //   PUSH_PROMISE, a new collection process begins
     else if (frame.type === "HEADERS" || frame.type === "PUSH_PROMISE") {
       this._inProgress = true;
       this._base = Object.assign({}, frame);
       this._frames = [frame];
-    }
-
-    // * otherwise, the frame is forwarded without taking any action
+    } // * otherwise, the frame is forwarded without taking any action
     else {
       this.push(frame);
     }

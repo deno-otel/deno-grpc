@@ -2,8 +2,8 @@ import { Method, parse, Root, Service } from "./proto.ts";
 
 import { Connection } from "./http2/conn.ts";
 
-import { Status, GrpcError } from "./error.ts";
-import { Serializer, Deserializer, Frame } from "./http2/frames.ts";
+import { GrpcError, Status } from "./error.ts";
+import { Deserializer, Frame, Serializer } from "./http2/frames.ts";
 import { Compressor, Decompressor } from "./http2/hpack.ts";
 
 import { Stream } from "./http2/stream.ts";
