@@ -117,7 +117,7 @@ export const SerializerFrames = {
       const buffer = new Buffer(5);
       assert(
         0 <= frame.priorityDependency && frame.priorityDependency <= 0x7fffffff,
-        frame.priorityDependency,
+        frame.priorityDependency
       );
       buffer.writeUInt32BE(frame.priorityDependency, 0);
       if (frame.exclusiveDependency) {
@@ -125,7 +125,7 @@ export const SerializerFrames = {
       }
       assert(
         0 <= frame.priorityWeight && frame.priorityWeight <= 0xff,
-        frame.priorityWeight,
+        frame.priorityWeight
       );
       buffer.writeUInt8(frame.priorityWeight, 4);
       buffers.push(buffer);
@@ -145,12 +145,12 @@ export const SerializerFrames = {
 
   PRIORITY(
     { priorityDependency, exclusiveDependency, priorityWeight }: Frame,
-    buffers: Buffer[],
+    buffers: Buffer[]
   ) {
     const buffer = new Buffer(5);
     assert(
       0 <= priorityDependency && priorityDependency <= 0x7fffffff,
-      priorityDependency,
+      priorityDependency
     );
     buffer.writeUInt32BE(priorityDependency, 0);
     if (exclusiveDependency) {
@@ -210,7 +210,7 @@ export const SerializerFrames = {
     });
     assert(
       settingsLeft.length === 0,
-      `Unknown settings: ${settingsLeft.join(", ")}`,
+      `Unknown settings: ${settingsLeft.join(", ")}`
     );
 
     const buffer = new Buffer(settings.length * 6);
@@ -244,7 +244,7 @@ export const SerializerFrames = {
     const promised_stream = frame.promised_stream;
     assert(
       0 <= promised_stream && promised_stream <= 0x7fffffff,
-      promised_stream,
+      promised_stream
     );
     buffer.writeUInt32BE(promised_stream, 0);
 
@@ -689,7 +689,7 @@ export class Deserializer {
       // chunk, then only a part of it is copied.
       const toCopy = Math.min(
         chunk.length - cursor,
-        this._buffer.length - this._cursor,
+        this._buffer.length - this._cursor
       );
       chunk.copy(this._buffer, this._cursor, cursor, cursor + toCopy);
       this._cursor += toCopy;
@@ -703,14 +703,17 @@ export class Deserializer {
       if (this._cursor === this._buffer.length && this._waitingForHeader) {
         const payloadSize = DeserializerFrames.commonHeader(
           this._buffer,
-          this._frame,
+          this._frame
         );
-        if (payloadSize <= MAX_PAYLOAD_SIZE) {
-          this._next(+payloadSize);
-        } else {
+        if (
+          payloadSize === "FRAME_SIZE_ERROR" ||
+          payloadSize > MAX_PAYLOAD_SIZE
+        ) {
           console.log({ payloadSize, MAX_PAYLOAD_SIZE });
 
           throw new Error("FRAME_SIZE_ERROR");
+        } else {
+          this._next(+payloadSize);
         }
       }
 
@@ -724,7 +727,7 @@ export class Deserializer {
           const error = DeserializerFrames[this._frame.type](
             this._buffer,
             this._frame,
-            this._role,
+            this._role
           );
           if (error) {
             this._log.error(`Incoming frame parsing error: ${error}`);

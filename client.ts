@@ -1,4 +1,4 @@
-import { Method, parse, Root, Service } from "./proto.ts";
+import { Message, Method, parse, Root, Service } from "./proto.ts";
 
 import { Connection } from "./http2/conn.ts";
 
@@ -251,7 +251,10 @@ export class GrpcClientImpl implements GrpcClient {
     this.closed = true;
   }
 
-  async _callUnary<Req, Res>(name: string, req: Req): Promise<Res> {
+  async _callUnary<Req extends Message, Res extends Message>(
+    name: string,
+    req: Req
+  ): Promise<Res> {
     await this.ensureConnection();
 
     // TODO: throw error here on not found
@@ -317,7 +320,10 @@ export class GrpcClientImpl implements GrpcClient {
     throw new Error("not expected");
   }
 
-  async *_callStream<Req, Res>(name: string, req: Req): AsyncGenerator<Res> {
+  async *_callStream<Req extends Message, Res extends Message>(
+    name: string,
+    req: Req
+  ): AsyncGenerator<Res> {
     await this.ensureConnection();
 
     // TODO: throw error here on not found
